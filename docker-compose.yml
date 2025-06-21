@@ -1,0 +1,44 @@
+# docker-compose.yml
+#
+# This file defines the services for your Voice-Controlled LLM App using Docker Compose.
+# It simplifies building and running the application in a containerized environment.
+
+version: '3.8'
+
+services:
+  voice_llm_app:
+    build:
+      context: . # Build from the current directory (where Dockerfile is located)
+      dockerfile: Dockerfile
+    container_name: voice-controlled-llm-app-container
+    ports:
+      - "8501:8501" # Map container port 8501 to host port 8501 (Streamlit default)
+    environment:
+      # --- IMPORTANT ---
+      # Set your OpenAI API key here.
+      # For production, consider using Docker secrets or external secret management.
+      # For local development, you can uncomment and provide it directly,
+      # or if your Dockerfile copies .env, ensure it's loaded within the app.
+      # It's generally better to pass sensitive info via environment variables in Docker Compose
+      # than baking it into the image or relying on .env inside the container, unless explicitly designed.
+      OPENAI_API_KEY: "${OPENAI_API_KEY}" # Reads from your host's .env if defined, or system env
+      MODEL_NAME: "gpt-3.5-turbo"
+      WHISPER_MODEL: "whisper-1"
+      TTS_MODEL: "tts-1"
+      TTS_VOICE: "alloy"
+      MAX_TOKENS: "150"
+      TEMPERATURE: "0.7"
+      DEBUG: "False" # Set to "True" for verbose logging in the container
+
+    volumes:
+      # Optional: Mount local data directories for persistence or debugging
+      # This allows generated audio and logs to be accessible on your host machine
+      - ./data/audio:/app/data/audio
+      - ./data/logs:/app/data/logs
+      # - ./data/conversations:/app/data/conversations # If you save conversations
+
+    # Command to run the application (overrides CMD in Dockerfile if specified)
+    # command: streamlit run src/app.py
+    # If using watchtower or other auto-reloaders, adjust CMD in Dockerfile or here.
+
+    restart: on-failure # Automatically restart the container if it exits with an error

@@ -1,0 +1,20 @@
+default_model:
+  name: gpt-3.5-turbo
+  max_tokens: 150
+  temperature: 0.7
+  tts_voice: alloy
+  whisper_model: whisper-1
+
+gpt-4o-mini:
+  name: gpt-4o-mini
+  max_tokens: 200
+  temperature: 0.5
+  tts_voice: echo # Example: using a different voice for this model
+
+gpt-4-turbo:
+  name: gpt-4-turbo
+  max_tokens: 300
+  temperature: 0.6
+  tts_voice: fable # Example: another voice
+
+# You can add more model configurations as needed.

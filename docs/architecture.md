@@ -10,7 +10,7 @@ The core flow of the application involves a pipeline:
 
 This entire pipeline is orchestrated by the central `VoiceLLM` class.
 
-[Voice LLM Diagram](images/voice-llm.png)
+![Voice LLM Diagram](images/voice-llm.png)
 
 ## 2. Component Breakdown
 

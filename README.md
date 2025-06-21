@@ -32,7 +32,7 @@ A multimodal AI application that enables voice-to-voice conversations with large
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone voice-controlled-llm-app
    cd voice-controlled-llm-app
    ```
 

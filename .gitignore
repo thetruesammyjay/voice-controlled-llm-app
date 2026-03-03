@@ -1,0 +1,63 @@
+# .gitignore
+#
+# Voice-Controlled LLM App — Git ignore rules
+#
+
+# ─── Python ───
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python/
+*.egg-info/
+*.egg
+
+# ─── Virtual Environments ───
+env/
+venv/
+.venv/
+
+# ─── Package Build Artifacts ───
+dist/
+build/
+*.whl
+*.tar.gz
+setup.py.bak
+
+# ─── Tool Caches ───
+.pytest_cache/
+.tox/
+.mypy_cache/
+.ipynb_checkpoints/
+.ruff_cache/
+htmlcov/
+
+# ─── Environment Variables ───
+.env
+.flaskenv
+
+# ─── IDE & Editor ───
+.idea/
+.vscode/
+*.iml
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+
+# ─── Data (runtime generated) ───
+data/audio/
+data/logs/
+data/conversations/
+data/**/*.json
+data/**/*.csv
+*.sqlite3
+*.db
+*.log
+
+# ─── Streamlit ───
+.streamlit/
+
+# ─── Misc ───
+*.bak
+*.swp
+*~

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Voice-Controlled LLM App — Engage in voice-to-voice conversations with AI using speech-to-text, intelligent responses, and text-to-speech.">
+
+    <title>Voice-Controlled LLM Chat</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎙️</text></svg>">
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Settings Toggle -->
+    <button class="settings-toggle btn" id="settings-toggle" aria-label="Settings">⚙️</button>
+
+    <!-- Settings Panel Overlay -->
+    <div class="settings-panel__overlay" id="settings-overlay"></div>
+
+    <!-- Settings Panel -->
+    <aside class="settings-panel" id="settings-panel">
+        <h2 class="settings-panel__title">Settings</h2>
+
+        <div class="settings-group">
+            <span class="settings-group__label">Model</span>
+            <div class="settings-group__value" id="setting-model">{{ config.model_name }}</div>
+        </div>
+
+        <div class="settings-group">
+            <span class="settings-group__label">Temperature</span>
+            <div class="settings-group__value" id="setting-temperature">{{ config.temperature }}</div>
+        </div>
+
+        <div class="settings-group">
+            <span class="settings-group__label">Max Tokens</span>
+            <div class="settings-group__value" id="setting-max-tokens">{{ config.max_tokens }}</div>
+        </div>
+
+        <div class="settings-group">
+            <span class="settings-group__label">TTS Voice</span>
+            <div class="settings-group__value" id="setting-voice">{{ config.tts_voice }}</div>
+        </div>
+
+        <button class="btn btn--clear" id="btn-clear">🗑️ Clear Conversation</button>
+    </aside>
+
+    <!-- Main App -->
+    <div class="app-container">
+
+        <!-- Header -->
+        <header class="app-header">
+            <div class="app-header__logo">🎙️</div>
+            <h1 class="app-header__title">Voice-Controlled LLM</h1>
+            <p class="app-header__subtitle">Speak or type to chat with AI</p>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="status-dot" id="status-dot"></div>
+            <span id="status-text">Ready</span>
+        </div>
+
+        <!-- Chat Area -->
+        <main class="chat-area" id="chat-area">
+
+            <!-- Empty State -->
+            <div class="empty-state" id="empty-state">
+                <div class="empty-state__icon">💬</div>
+                <p class="empty-state__text">Start a conversation by typing a message or recording your voice.</p>
+                <div class="empty-state__hint">
+                    <span class="hint-chip">Hello!</span>
+                    <span class="hint-chip">Tell me a joke</span>
+                    <span class="hint-chip">What can you do?</span>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </main>
+
+        <!-- Input Area -->
+        <footer class="input-area">
+            <div class="input-container">
+                <!-- Record Button -->
+                <button class="btn btn--icon btn--record" id="btn-record" aria-label="Record audio">🎤</button>
+
+                <!-- Waveform (shown while recording) -->
+                <div class="waveform-container" id="waveform">
+                    <div class="waveform-bar"></div>
+                    <div class="waveform-bar"></div>
+                    <div class="waveform-bar"></div>
+                    <div class="waveform-bar"></div>
+                    <div class="waveform-bar"></div>
+                </div>
+
+                <!-- Text Input -->
+                <textarea
+                    class="input-text"
+                    id="text-input"
+                    placeholder="Type a message..."
+                    rows="1"
+                    aria-label="Message input"
+                ></textarea>
+
+                <!-- Upload Button -->
+                <button class="btn btn--icon btn--upload" id="btn-upload" aria-label="Upload audio file">📎</button>
+                <input type="file" class="file-upload-input" id="file-upload" accept="audio/*">
+
+                <!-- Send Button -->
+                <button class="btn btn--icon btn--send" id="btn-send" disabled aria-label="Send message">➤</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

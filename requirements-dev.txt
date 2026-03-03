@@ -1,0 +1,14 @@
+# Development dependencies for the Voice-Controlled LLM App
+# Includes libraries for testing, code formatting, and linting.
+
+# Testing framework
+pytest>=8.0.0
+
+# Code formatting tool
+black>=24.0.0
+
+# Code linting tool
+flake8>=6.0.0
+
+# Potentially useful for dependency resolution issues during development
+# pip-tools  # Uncomment if you want to use pip-compile/pip-sync

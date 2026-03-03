@@ -1,0 +1,43 @@
+# .flake8
+#
+# Flake8 configuration file for the Voice-Controlled LLM App.
+# Flake8 is a tool that glues together PyFlakes, pycodestyle, and McCabe.
+#
+# [flake8] section defines various options for Flake8 to lint your code.
+
+[flake8]
+# E501: Line too long (88 characters, matching Black's default)
+# W503: Line break before binary operator (Black fixes this)
+# F401: 'module' imported but unused (common during development)
+# E203: Whitespace before ':' (Black handles this)
+ignore = E501, W503, F401, E203
+
+# Maximum line length. Black's default is 88.
+max-line-length = 88
+
+# Maximum McCabe complexity.
+# A measure of the complexity of a program, indicating how many distinct paths
+# are present in the code. Higher complexity generally means harder to test and maintain.
+max-complexity = 10
+
+# Exclude directories from linting.
+# venv: virtual environment
+# .git: Git repository data
+# __pycache__: Python bytecode cache
+# build: build artifacts
+# dist: distribution packages
+# data: application data directory
+# scripts: utility scripts (often bash, not Python, or self-contained)
+exclude = venv,.git,__pycache__,build,dist,data,scripts,docs,tests
+
+# Define paths to include in linting (if you want to be explicit)
+# Default is current directory, but this can be useful.
+# If you place this in root, it will apply to 'src/' and other Python files.
+# For example:
+# select = E,W,F,C,N,I
+# This ensures you select specific error codes to report/ignore.
+# E/W: pycodestyle errors/warnings
+# F: PyFlakes errors
+# C: McCabe complexity
+# N: Naming issues from flake8-naming
+# I: Import order issues from flake8-isort (if installed)

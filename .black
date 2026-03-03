@@ -1,0 +1,40 @@
+# .black
+#
+# Black formatter configuration file for the Voice-Controlled LLM App.
+# Black is an uncompromising Python code formatter. By using it, you agree to the default formatting style.
+# The options here are minimal, as Black is opinionated.
+
+[tool.black]
+# Maximum line length for code. Default is 88, which is usually a good balance.
+line-length = 88
+
+# Target Python versions for compatibility. Black will format code to be compatible
+# with these versions.
+target-version = ['py312'] # Targeting Python 3.12
+
+# Directories to exclude from formatting.
+# exclude = '''
+# /(
+#     \.git
+#     | \.hg
+#     | \.mypy_cache
+#     | \.tox
+#     | \.venv
+#     | _build
+#     | buck-out
+#     | build
+#     | dist
+#     | \.pytest_cache
+#     | data # Your data directory
+#     | scripts # Your scripts directory
+#     | docs # Your documentation directory
+# )/
+# '''
+# Note: For simple setups, Black often respects .gitignore by default.
+# Explicitly listing here if you have specific needs.
+
+# Files to exclude from formatting (using regex)
+# extend-exclude = ''
+
+# Whether to format notebooks (IPython notebooks). Set to True if you have .ipynb files.
+#ipynb = false

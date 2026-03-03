@@ -1,0 +1,23 @@
+# Voice-Controlled LLM App - requirements.txt (Python 3.12.10 compatible)
+
+# LLM orchestration and chaining
+langchain==0.1.16
+
+# OpenAI API for GPT models, Whisper (STT), and TTS
+openai==1.30.1
+
+# Web interface (optional)
+streamlit==1.35.0
+
+# Audio recording and playback (modern replacements for PyAudio)
+sounddevice==0.4.6
+soundfile==0.12.1
+
+# Environment variable management
+python-dotenv==1.0.1
+
+# Numerical operations
+numpy==1.26.4
+
+# HTTP requests
+requests==2.31.0

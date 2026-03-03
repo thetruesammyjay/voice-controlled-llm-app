@@ -3,10 +3,15 @@ Tests for the LLM module (chains, prompts, memory).
 Uses mocking to avoid requiring an OpenAI API key.
 """
 
+import os
+
+# Set dummy API key BEFORE importing src modules
+os.environ.setdefault("OPENAI_API_KEY", "test-key-for-testing")
+
 import pytest
 from unittest.mock import patch, MagicMock
 
-from langchain.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate
 from langchain.memory import ConversationBufferMemory
 
 from src.llm.memory import get_conversation_memory
@@ -133,6 +138,8 @@ class TestPrompts:
 # Chains Tests
 # ═══════════════════════════════════════════════════
 
+from langchain_core.language_models.fake import FakeListLLM
+
 class TestConversationChain:
     """Tests for conversation chain configuration."""
 
@@ -144,6 +151,9 @@ class TestConversationChain:
         mock_config.TEMPERATURE = 0.7
         mock_config.MAX_TOKENS = 150
         mock_config.OPENAI_API_KEY = "test-key"
+        
+        # Return a valid Langchain LLM to pass Pydantic validation
+        mock_llm_cls.return_value = FakeListLLM(responses=["test"])
 
         chain = get_conversation_chain(verbose=False)
 
@@ -154,39 +164,39 @@ class TestConversationChain:
     @patch("src.llm.chains.config")
     def test_get_conversation_chain_with_custom_llm(self, mock_config):
         """Test chain creation with a custom LLM instance."""
-        mock_llm = MagicMock()
+        fake_llm = FakeListLLM(responses=["test"])
 
-        chain = get_conversation_chain(llm=mock_llm)
+        chain = get_conversation_chain(llm=fake_llm)
 
-        assert chain.llm is mock_llm
+        assert chain.llm is fake_llm
 
     @patch("src.llm.chains.config")
     def test_get_conversation_chain_with_custom_memory(self, mock_config):
         """Test chain creation with a custom memory instance."""
-        mock_llm = MagicMock()
+        fake_llm = FakeListLLM(responses=["test"])
         custom_memory = get_conversation_memory()
 
-        chain = get_conversation_chain(llm=mock_llm, memory=custom_memory)
+        chain = get_conversation_chain(llm=fake_llm, memory=custom_memory)
 
-        assert chain.memory is custom_memory
+        assert chain.memory == custom_memory
 
     @patch("src.llm.chains.config")
     def test_get_conversation_chain_with_custom_prompt(self, mock_config):
         """Test chain creation with a custom prompt template."""
-        mock_llm = MagicMock()
+        fake_llm = FakeListLLM(responses=["test"])
         custom_prompt = get_creative_prompt()
 
-        chain = get_conversation_chain(llm=mock_llm, prompt_template=custom_prompt)
+        chain = get_conversation_chain(llm=fake_llm, prompt_template=custom_prompt)
 
-        assert chain.prompt is custom_prompt
+        assert chain.prompt == custom_prompt
 
     @patch("src.llm.chains.config")
     def test_get_conversation_chain_verbose_flag(self, mock_config):
         """Test verbose flag is passed to the chain."""
-        mock_llm = MagicMock()
+        fake_llm = FakeListLLM(responses=["test"])
 
-        chain = get_conversation_chain(llm=mock_llm, verbose=True)
+        chain = get_conversation_chain(llm=fake_llm, verbose=True)
         assert chain.verbose is True
 
-        chain_quiet = get_conversation_chain(llm=mock_llm, verbose=False)
+        chain_quiet = get_conversation_chain(llm=fake_llm, verbose=False)
         assert chain_quiet.verbose is False

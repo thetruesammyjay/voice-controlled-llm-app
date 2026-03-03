@@ -4,6 +4,11 @@ Uses mocking to avoid making real API calls.
 """
 
 import os
+
+# Set dummy API key BEFORE importing src modules
+# (config.py creates a global Config() at import time which validates the key)
+os.environ.setdefault("OPENAI_API_KEY", "test-key-for-testing")
+
 import pytest
 from unittest.mock import patch, MagicMock, mock_open
 

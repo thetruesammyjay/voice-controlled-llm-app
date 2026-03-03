@@ -67,6 +67,8 @@ class TestAudioRecorder:
     @patch("src.audio.recorder.sd")
     def test_start_recording_generic_error(self, mock_sd):
         """Test recording handles unexpected exceptions."""
+        import sounddevice as sd
+        mock_sd.PortAudioError = sd.PortAudioError
         mock_sd.rec.side_effect = RuntimeError("Unexpected error")
 
         recorder = AudioRecorder()

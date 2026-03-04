@@ -14,7 +14,12 @@ from unittest.mock import patch, MagicMock
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.memory import ConversationBufferMemory
 
-from src.llm.memory import get_conversation_memory
+from src.llm.memory import (
+    get_conversation_memory,
+    save_conversation,
+    load_conversation,
+    list_saved_conversations,
+)
 from src.llm.prompts import get_default_prompt, get_creative_prompt, get_technical_prompt
 from src.llm.chains import get_conversation_chain
 
@@ -200,3 +205,42 @@ class TestConversationChain:
 
         chain_quiet = get_conversation_chain(llm=fake_llm, verbose=False)
         assert chain_quiet.verbose is False
+
+
+# ═══════════════════════════════════════════════════
+# Persistence Tests
+# ═══════════════════════════════════════════════════
+
+class TestConversationPersistence:
+    """Tests for saving and loading conversations."""
+
+    def test_save_and_load_roundtrip(self, tmp_path):
+        """Test saving and loading a conversation preserves messages."""
+        memory = get_conversation_memory()
+        memory.save_context({"input": "Hello"}, {"output": "Hi there!"})
+        memory.save_context({"input": "How are you?"}, {"output": "Great, thanks!"})
+
+        filepath = str(tmp_path / "test_conv.json")
+        save_conversation(memory, filepath=filepath)
+
+        loaded = load_conversation(filepath)
+        history = loaded.load_memory_variables({})
+        assert len(history["chat_history"]) == 4  # 2 pairs
+
+    def test_load_nonexistent_raises(self):
+        """Test loading a missing file raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            load_conversation("nonexistent_conversation.json")
+
+    def test_list_saved_conversations(self, tmp_path, monkeypatch):
+        """Test listing saved conversations returns sorted files."""
+        import src.llm.memory as mem_module
+        monkeypatch.setattr(mem_module, "CONVERSATIONS_DIR", str(tmp_path))
+
+        (tmp_path / "conv_a.json").write_text("{}")
+        (tmp_path / "conv_b.json").write_text("{}")
+
+        result = list_saved_conversations()
+        assert len(result) == 2
+        assert all(f.endswith(".json") for f in result)
+

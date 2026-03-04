@@ -15,6 +15,12 @@ from unittest.mock import patch, MagicMock, mock_open
 from src.api.openai_client import OpenAIClient
 from src.api.whisper import Whisper
 from src.api.tts import TTS
+from src.utils.exceptions import (
+    TranscriptionError,
+    ChatCompletionError,
+    SynthesisError,
+    AudioFileNotFoundError,
+)
 
 
 # ═══════════════════════════════════════════════════
@@ -64,21 +70,21 @@ class TestOpenAIClient:
     @patch("src.api.openai_client.config")
     @patch("src.api.openai_client.OpenAI")
     def test_transcribe_audio_file_not_found(self, mock_openai_cls, mock_config):
-        """Test transcription with nonexistent file."""
+        """Test transcription raises AudioFileNotFoundError for missing file."""
         mock_config.OPENAI_API_KEY = "test-key"
         mock_config.WHISPER_MODEL = "whisper-1"
         mock_config.TTS_MODEL = "tts-1"
         mock_config.TTS_VOICE = "alloy"
 
         client = OpenAIClient()
-        result = client.transcribe_audio("nonexistent.wav")
 
-        assert result == "Audio file not found."
+        with pytest.raises(AudioFileNotFoundError):
+            client.transcribe_audio("nonexistent.wav")
 
     @patch("src.api.openai_client.config")
     @patch("src.api.openai_client.OpenAI")
     def test_transcribe_audio_api_error(self, mock_openai_cls, mock_config):
-        """Test transcription handles API errors gracefully."""
+        """Test transcription raises TranscriptionError on API failure."""
         mock_config.OPENAI_API_KEY = "test-key"
         mock_config.WHISPER_MODEL = "whisper-1"
         mock_config.TTS_MODEL = "tts-1"
@@ -92,9 +98,8 @@ class TestOpenAIClient:
 
         with patch("builtins.open", mock_open(read_data=b"audio data")):
             with patch("src.api.openai_client.os.path.exists", return_value=True):
-                result = client.transcribe_audio("test.wav")
-
-        assert result == "Could not transcribe audio."
+                with pytest.raises(TranscriptionError):
+                    client.transcribe_audio("test.wav")
 
     @patch("src.api.openai_client.config")
     @patch("src.api.openai_client.OpenAI")
@@ -122,7 +127,7 @@ class TestOpenAIClient:
     @patch("src.api.openai_client.config")
     @patch("src.api.openai_client.OpenAI")
     def test_get_chat_completion_error(self, mock_openai_cls, mock_config):
-        """Test chat completion handles errors."""
+        """Test chat completion raises ChatCompletionError on failure."""
         mock_config.OPENAI_API_KEY = "test-key"
         mock_config.WHISPER_MODEL = "whisper-1"
         mock_config.TTS_MODEL = "tts-1"
@@ -133,9 +138,9 @@ class TestOpenAIClient:
         mock_client_instance.chat.completions.create.side_effect = Exception("Rate limit")
 
         client = OpenAIClient()
-        result = client.get_chat_completion([], "gpt-3.5-turbo", 0.7, 150)
 
-        assert result == "Could not generate response."
+        with pytest.raises(ChatCompletionError):
+            client.get_chat_completion([], "gpt-3.5-turbo", 0.7, 150)
 
     @patch("src.api.openai_client.config")
     @patch("src.api.openai_client.OpenAI")
@@ -161,7 +166,7 @@ class TestOpenAIClient:
     @patch("src.api.openai_client.config")
     @patch("src.api.openai_client.OpenAI")
     def test_synthesize_speech_error(self, mock_openai_cls, mock_config):
-        """Test speech synthesis handles errors."""
+        """Test speech synthesis raises SynthesisError on failure."""
         mock_config.OPENAI_API_KEY = "test-key"
         mock_config.WHISPER_MODEL = "whisper-1"
         mock_config.TTS_MODEL = "tts-1"
@@ -172,9 +177,9 @@ class TestOpenAIClient:
         mock_client_instance.audio.speech.create.side_effect = Exception("TTS Error")
 
         client = OpenAIClient()
-        result = client.synthesize_speech("Hello", "output.mp3")
 
-        assert result == ""
+        with pytest.raises(SynthesisError):
+            client.synthesize_speech("Hello", "output.mp3")
 
 
 # ═══════════════════════════════════════════════════

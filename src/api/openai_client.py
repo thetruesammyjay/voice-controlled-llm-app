@@ -1,99 +1,156 @@
-from openai import OpenAI
-from src.utils.config import config
+"""
+Unified client for interacting with OpenAI APIs (GPT, Whisper, TTS).
+Includes automatic retry logic for transient failures using tenacity.
+"""
+
 import os
+from openai import OpenAI
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+from src.utils.config import config
+from src.utils.exceptions import (
+    TranscriptionError,
+    ChatCompletionError,
+    SynthesisError,
+    AudioFileNotFoundError,
+)
+
 
 class OpenAIClient:
     """
     Unified client for interacting with OpenAI APIs (GPT, Whisper, TTS).
+    Uses tenacity for automatic retries on transient API errors.
     """
-    def __init__(self):
+
+    def __init__(self) -> None:
         self.client = OpenAI(api_key=config.OPENAI_API_KEY)
-        self.whisper_model = config.WHISPER_MODEL
-        self.tts_model = config.TTS_MODEL
-        self.tts_voice = config.TTS_VOICE
+        self.whisper_model: str = config.WHISPER_MODEL
+        self.tts_model: str = config.TTS_MODEL
+        self.tts_voice: str = config.TTS_VOICE
+
+    # ── Whisper (Speech-to-Text) ──────────────────────────────
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        reraise=True,
+    )
+    def _call_whisper_api(self, audio_file_path: str) -> str:
+        """Low-level Whisper API call with automatic retry."""
+        with open(audio_file_path, "rb") as audio_file:
+            transcript = self.client.audio.transcriptions.create(
+                model=self.whisper_model,
+                file=audio_file,
+                response_format="text",
+            )
+        return transcript.text if hasattr(transcript, "text") else transcript
 
     def transcribe_audio(self, audio_file_path: str) -> str:
         """
         Converts speech from an audio file to text using OpenAI Whisper API.
 
         Args:
-            audio_file_path (str): Path to the audio file.
+            audio_file_path: Path to the audio file.
 
         Returns:
-            str: Transcribed text.
+            Transcribed text.
+
+        Raises:
+            AudioFileNotFoundError: If the audio file does not exist.
+            TranscriptionError: If the Whisper API call fails.
         """
         if not os.path.exists(audio_file_path):
             print(f"Error: Audio file not found at {audio_file_path}")
-            return "Audio file not found."
+            raise AudioFileNotFoundError(f"Audio file not found at {audio_file_path}")
 
         try:
             print(f"Transcribing audio from {audio_file_path} using Whisper model: {self.whisper_model}...")
-            # For demonstration, we'll simulate a response.
-            # In a real application, you would do:
-            with open(audio_file_path, "rb") as audio_file:
-                 transcript = self.client.audio.transcriptions.create(
-                     model=self.whisper_model,
-                     file=audio_file,
-                     response_format="text"
-                 )
-            return transcript.text if hasattr(transcript, 'text') else transcript
+            return self._call_whisper_api(audio_file_path)
         except Exception as e:
             print(f"Error during audio transcription: {e}")
-            return "Could not transcribe audio."
+            raise TranscriptionError(f"Could not transcribe audio: {e}") from e
+
+    # ── GPT (Chat Completion) ─────────────────────────────────
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        reraise=True,
+    )
+    def _call_chat_api(self, messages: list, model: str, temperature: float, max_tokens: int) -> str:
+        """Low-level Chat Completion API call with automatic retry."""
+        response = self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        return response.choices[0].message.content
 
     def get_chat_completion(self, messages: list, model: str, temperature: float, max_tokens: int) -> str:
         """
         Generates a chat completion using OpenAI GPT models.
 
         Args:
-            messages (list): List of message dictionaries [{role: "user", content: "..."}].
-            model (str): The GPT model to use (e.g., "gpt-3.5-turbo").
-            temperature (float): Controls creativity (0.0-1.0).
-            max_tokens (int): Maximum number of tokens in the response.
+            messages: List of message dictionaries [{role: "user", content: "..."}].
+            model: The GPT model to use (e.g., "gpt-3.5-turbo").
+            temperature: Controls creativity (0.0-1.0).
+            max_tokens: Maximum number of tokens in the response.
 
         Returns:
-            str: Generated text response.
+            Generated text response.
+
+        Raises:
+            ChatCompletionError: If the Chat Completion API call fails.
         """
         try:
             print(f"Generating chat completion using model: {model}...")
-            # For demonstration, we'll simulate a response.
-            # In a real application, you would do:
-            response = self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens
-            )
-            return response.choices[0].message.content
+            return self._call_chat_api(messages, model, temperature, max_tokens)
         except Exception as e:
             print(f"Error during chat completion: {e}")
-            return "Could not generate response."
+            raise ChatCompletionError(f"Could not generate response: {e}") from e
+
+    # ── TTS (Text-to-Speech) ──────────────────────────────────
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=2, max=10),
+        retry=retry_if_exception_type(Exception),
+        reraise=True,
+    )
+    def _call_tts_api(self, text: str, output_file_path: str) -> str:
+        """Low-level TTS API call with automatic retry."""
+        response = self.client.audio.speech.create(
+            model=self.tts_model,
+            voice=self.tts_voice,
+            input=text,
+        )
+        response.stream_to_file(output_file_path)
+        return output_file_path
 
     def synthesize_speech(self, text: str, output_file_path: str) -> str:
         """
         Converts text to natural-sounding audio using OpenAI TTS API.
 
         Args:
-            text (str): The text to synthesize.
-            output_file_path (str): The path to save the generated audio file.
+            text: The text to synthesize.
+            output_file_path: The path to save the generated audio file.
 
         Returns:
-            str: Path to the generated audio file, or empty string on error.
+            Path to the generated audio file.
+
+        Raises:
+            SynthesisError: If the TTS API call fails.
         """
         try:
             print(f"Synthesizing speech for text: '{text[:50]}...' using TTS model: {self.tts_model}, voice: {self.tts_voice}...")
-            # For demonstration, we'll simulate saving an empty file.
-            # In a real application, you would do:
-            response = self.client.audio.speech.create(
-                model=self.tts_model,
-                voice=self.tts_voice,
-                input=text
-            )
-            response.stream_to_file(output_file_path)
-            return output_file_path
+            return self._call_tts_api(text, output_file_path)
         except Exception as e:
             print(f"Error during speech synthesis: {e}")
-            return ""
+            raise SynthesisError(f"Could not synthesize speech: {e}") from e
+
 
 # Example usage (for testing purposes, not typically run directly)
 if __name__ == "__main__":
